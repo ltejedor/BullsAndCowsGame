@@ -7,8 +7,13 @@
 <body>
     <h2>Bulls and Cows</h2>
     <p><a href="https://en.wikipedia.org/wiki/Bulls_and_Cows" target="_blank">huh?</a></p>
+    <div style="position: absolute; right: 10px; top: 15px; text-align: center;">
+        <p>Score</p>
+        <p><span id="comp-score">0</span> Computer</p>
+        <p><span id="human-score">0</span> Pitiful Human</p>
+    </div>
 
-    <p id="messages"></p>
+    <p id="messages" style="margin-top: 15px"></p>
 
 
 
@@ -27,7 +32,7 @@
 
 
     <div style="margin-top:20px;">
-        <button type="button">Reset game</button>
+        <button id="reset-game" type="button">Reset Game</button>
     </div>
 
 
@@ -38,7 +43,8 @@
 
     var correctNum, correctNumArray, turns;
     var table = document.getElementById("tracking-table");
-
+    computerScore = 0;
+    humanScore = 0;
 
     var startGame = function(){
         var welcomeMessage = 'I\'ve decided on a secret number, and I\'m keeping it in my computer brain. Can you crack the code? One hint - it\'s only 4 numbers long.'
@@ -54,7 +60,6 @@
         correctNum = Math.floor(1000 + Math.random() * 9000);
         //break correctNumber into an array of numbers
         correctNumArray = (correctNum).toString(10).split("").map(function(t){return parseInt(t)});
-        console.log(correctNumArray);
     }
 
     //computer messages
@@ -74,7 +79,10 @@
 
 
         //check to make sure number is 4 characters. if it is, great! get code. else say mean things to user.
-        if(userGuessArray.length != 4){
+        if(isNaN(userGuess)){
+            computerSpeaks('It\'s a secret NUMBER, human. Goodness, let\'s try this again.');
+        }
+        else if(userGuessArray.length != 4){
             computerSpeaks('Ugh, can\'t you get anything right, human? I said the number was 4 characters long. Try again.');
         }
         else{
@@ -105,42 +113,75 @@
             }
         }
 
-        console.log('guess after loop ' + userGuess);
-        console.log('copy after loop ' + numArrayCopy);
-        console.log(numBulls);
-
         //check for cows
        for(var i = 0; i < numArrayCopy.length; i++){
-            console.log('array copy in cow loop ' + numArrayCopy[i]);
             //pull every number out of the remaining numbers and compare them
             if(userGuessCopy.indexOf(numArrayCopy[i]) > -1 && numArrayCopy[i] != null){
-                console.log(userGuessCopy);
                 numCows++;
                 //remove from userGuess to deal with more than one of the same number
                 var arrayLocation = userGuess.indexOf(numArrayCopy[i]);
                 userGuessCopy.splice(arrayLocation, 1);
-                console.log(userGuess);
             }
 
         }
 
-        console.log(numCows);
 
         result = numBulls + 'A' + numCows + 'B';
         addResultsToTable(userGuess, result);
 
+        //if there are 4 bulls, the user won! go to win state hoooray
+
+
+
         //if the user is out of tries, disable input and show end message, else come up with message based on how 'close' the user got
-        if(turns < 12){
+        if(numBulls === 4){
+            winGame();
+        }
+        else if(turns < 12){
             generateResponse(numBulls, numCows);
         }else{
-            document.getElementById('click-guess').disabled = true;
-            document.getElementById('guess').disabled = true;
-            computerSpeaks('You\'re all out of tries! Haha, the computer is unbeatable, you\'ll never crack my code.');
+            loseGame();
         }
     }
 
+    var loseGame = function(){
+        document.getElementById('click-guess').disabled = true;
+        document.getElementById('guess').disabled = true;
+        computerSpeaks('You\'re all out of tries! Haha, the computer is unbeatable, you\'ll never crack my code. If you REALLY want another try, you can press Reset below.');
+        computerScore++;
+        document.getElementById("comp-score").innerHTML = computerScore;
+    }
+
+    var winGame = function(){
+        document.getElementById('click-guess').disabled = true;
+        document.getElementById('guess').disabled = true;
+        computerSpeaks('You cracked my code, oh no. You got my secret number in ' + turns + ' tries. I guess that\'s not so bad. Press Reset below, and we\'ll see if you just got lucky.');
+        humanScore++;
+        document.getElementById("human-score").innerHTML = humanScore;
+    }
 
     var generateResponse = function(numBulls, numCows){
+        var turnsLeft = 12 - turns;
+        var turnsLeftText = '';
+
+        //add plural numbers to all but 1 turn left
+        if(turnsLeft > 1){
+            turnsLeftText = turnsLeft + ' guesses';
+        }
+        else{
+            turnsLeftText = turnsLeft + ' chance';
+        }
+
+        if(numBulls >= 2){
+            computerSpeaks('Ha! You\'re so close human, but you can\'t possibly crack my code. You\'ve got ' + turnsLeftText + ' left.');
+        }else if(numBulls >= 1){
+            computerSpeaks('I guess you\'re getting closer, but which number is it? Mwahaha. You have ' + turnsLeftText + ' left.');
+        }
+        else if(numCows >= 2){
+            computerSpeaks('You\'re not even close! And you only have ' + turnsLeftText + ' left!');
+        }else{
+            computerSpeaks('Ha, humans don\'t know how to do anything, my code is unbreakable. ' + turnsLeftText + ' left to not totally mess up.');
+        }
     }
 
 
@@ -157,6 +198,20 @@
 
     }
 
+    //new game when reset button is clicked
+    document.getElementById('reset-game').onclick=function(){
+        //clear table
+        while(table.rows.length > 1) {
+          table.deleteRow(1);
+        }
+
+        //undisable input and submit
+        document.getElementById('click-guess').disabled = false;
+        document.getElementById('guess').disabled = false;
+
+        //start over!
+        startGame();
+    }
 
     //start game on page load
     startGame();
