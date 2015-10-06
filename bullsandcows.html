@@ -17,7 +17,7 @@
         <button id="click-guess" type="button">Submit</button>
     </div>
 
-    <table style="width:35%; margin-top:20px;">
+    <table id="tracking-table" style="width:35%; margin-top:20px;">
       <tr>
         <td><b>#</b></td>
         <td><b>Guess</b></td>
@@ -37,6 +37,7 @@
 <script>
 
     var correctNum, correctNumArray, turns;
+    var table = document.getElementById("tracking-table");
 
 
     var startGame = function(){
@@ -61,23 +62,29 @@
         document.getElementById("messages").innerHTML = thisImportantMessage;
     }
 
+
+
     //when the user clicks submit, get their guess
     document.getElementById('click-guess').onclick=function(){
 
         //get user guess and clear input
         var userGuess = document.getElementById('guess').value;
-        userGuess = (userGuess).toString(10).split("").map(function(t){return parseInt(t)});
+        userGuessArray = (userGuess).toString(10).split("").map(function(t){return parseInt(t)});
         document.getElementById('guess').value = '';
 
 
         //check to make sure number is 4 characters. if it is, great! get code. else say mean things to user.
-        if(userGuess.length != 4){
+        if(userGuessArray.length != 4){
             computerSpeaks('Ugh, can\'t you get anything right, human? I said the number was 4 characters long. Try again.');
         }
         else{
-            compareGuessToNum(userGuess);
+            //turn goes up by one
+            turns++;
+            compareGuessToNum(userGuess, userGuessArray);
         }
     }
+
+
 
     var compareGuessToNum = function(userGuess){
         var numBulls = 0;
@@ -85,15 +92,16 @@
 
         //create a new variable to hold correctNumArray so I don't actually delete those numbers
         var numArrayCopy = correctNumArray.slice();
+        var userGuessCopy = userGuessArray.slice();
 
         //check for bulls
         for(var i = 0; i < 4; i++){
-            if(numArrayCopy[i] === userGuess[i]){
+            if(numArrayCopy[i] === userGuessCopy[i]){
                 numBulls++;
 
                 //remove numbers from array so they don't get counted for cows
                 numArrayCopy[i] = null;
-                userGuess[i] = null;
+                userGuessCopy[i] = null;
             }
         }
 
@@ -105,12 +113,12 @@
        for(var i = 0; i < numArrayCopy.length; i++){
             console.log('array copy in cow loop ' + numArrayCopy[i]);
             //pull every number out of the remaining numbers and compare them
-            if(userGuess.indexOf(numArrayCopy[i]) > -1 && numArrayCopy[i] != null){
-                console.log(userGuess);
+            if(userGuessCopy.indexOf(numArrayCopy[i]) > -1 && numArrayCopy[i] != null){
+                console.log(userGuessCopy);
                 numCows++;
                 //remove from userGuess to deal with more than one of the same number
                 var arrayLocation = userGuess.indexOf(numArrayCopy[i]);
-                userGuess.splice(arrayLocation, 1);
+                userGuessCopy.splice(arrayLocation, 1);
                 console.log(userGuess);
             }
 
@@ -119,7 +127,34 @@
         console.log(numCows);
 
         result = numBulls + 'A' + numCows + 'B';
-        computerSpeaks(result);
+        addResultsToTable(userGuess, result);
+
+        //if the user is out of tries, disable input and show end message, else come up with message based on how 'close' the user got
+        if(turns < 12){
+            generateResponse(numBulls, numCows);
+        }else{
+            document.getElementById('click-guess').disabled = true;
+            document.getElementById('guess').disabled = true;
+            computerSpeaks('You\'re all out of tries! Haha, the computer is unbeatable, you\'ll never crack my code.');
+        }
+    }
+
+
+    var generateResponse = function(numBulls, numCows){
+    }
+
+
+    var addResultsToTable = function(userGuess, result){
+        //create variable names for row and cells
+        var row = table.insertRow(turns);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+
+        cell1.innerHTML = turns;
+        cell2.innerHTML = userGuess;
+        cell3.innerHTML = result;
+
     }
 
 
