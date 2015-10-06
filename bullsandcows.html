@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulls and Cows</title>
+</head>
+<body>
+    <h2>Bulls and Cows</h2>
+    <p><a href="https://en.wikipedia.org/wiki/Bulls_and_Cows" target="_blank">huh?</a></p>
+
+    <p id="messages"></p>
+
+
+
+    <div>
+        <input id="guess" type="text">
+        <button id="click-guess" type="button">Submit</button>
+    </div>
+
+    <table style="width:35%; margin-top:20px;">
+      <tr>
+        <td><b>#</b></td>
+        <td><b>Guess</b></td>
+        <td><b>Result</b></td>
+      </tr>
+    </table>
+
+
+    <div style="margin-top:20px;">
+        <button type="button">Reset game</button>
+    </div>
+
+
+</body>
+</html>
+
+<script>
+
+    var correctNum, correctNumArray, turns;
+
+
+    var startGame = function(){
+        var welcomeMessage = 'I\'ve decided on a secret number, and I\'m keeping it in my computer brain. Can you crack the code? One hint - it\'s only 4 numbers long.'
+        computerSpeaks(welcomeMessage);
+
+        generateNumber();
+
+        turns = 0;
+    }
+
+
+    var generateNumber = function(){
+        correctNum = Math.floor(1000 + Math.random() * 9000);
+        //break correctNumber into an array of numbers
+        correctNumArray = (correctNum).toString(10).split("").map(function(t){return parseInt(t)});
+        console.log(correctNumArray);
+    }
+
+    //computer messages
+    var computerSpeaks = function(thisImportantMessage){
+        document.getElementById("messages").innerHTML = thisImportantMessage;
+    }
+
+    //when the user clicks submit, get their guess
+    document.getElementById('click-guess').onclick=function(){
+
+        //get user guess and clear input
+        var userGuess = document.getElementById('guess').value;
+        userGuess = (userGuess).toString(10).split("").map(function(t){return parseInt(t)});
+        document.getElementById('guess').value = '';
+
+
+        //check to make sure number is 4 characters. if it is, great! get code. else say mean things to user.
+        if(userGuess.length != 4){
+            computerSpeaks('Ugh, can\'t you get anything right, human? I said the number was 4 characters long. Try again.');
+        }
+        else{
+            compareGuessToNum(userGuess);
+        }
+    }
+
+    var compareGuessToNum = function(userGuess){
+        var numBulls = 0;
+        var numCows = 0;
+
+        //create a new variable to hold correctNumArray so I don't actually delete those numbers
+        var numArrayCopy = correctNumArray.slice();
+
+        //check for bulls
+        for(var i = 0; i < 4; i++){
+            if(numArrayCopy[i] === userGuess[i]){
+                numBulls++;
+
+                //remove numbers from array so they don't get counted for cows
+                numArrayCopy[i] = null;
+                userGuess[i] = null;
+            }
+        }
+
+        console.log('guess after loop ' + userGuess);
+        console.log('copy after loop ' + numArrayCopy);
+        console.log(numBulls);
+
+        //check for cows
+       for(var i = 0; i < numArrayCopy.length; i++){
+            console.log('array copy in cow loop ' + numArrayCopy[i]);
+            //pull every number out of the remaining numbers and compare them
+            if(userGuess.indexOf(numArrayCopy[i]) > -1 && numArrayCopy[i] != null){
+                console.log(userGuess);
+                numCows++;
+                //remove from userGuess to deal with more than one of the same number
+                var arrayLocation = userGuess.indexOf(numArrayCopy[i]);
+                userGuess.splice(arrayLocation, 1);
+                console.log(userGuess);
+            }
+
+        }
+
+        console.log(numCows);
+
+        result = numBulls + 'A' + numCows + 'B';
+        computerSpeaks(result);
+    }
+
+
+    //start game on page load
+    startGame();
+</script>
